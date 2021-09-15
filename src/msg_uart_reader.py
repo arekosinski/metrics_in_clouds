@@ -9,7 +9,6 @@ import traceback
 import threading
 import queue
 import sys,os
-from lib.message_object import MessageObject
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+"/lib")
 
