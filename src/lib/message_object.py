@@ -3,6 +3,7 @@
 import datetime
 import ast
 import traceback
+import json
 
 class MessageObject:
 
@@ -81,14 +82,14 @@ class MessageObject:
 
     def export_message(self):
         msg = dict()
-        msg["timestamp"] = self.get_timestamp()
-        msg["device_id"] = self.get_device_id()
-        msg["measure_code"] = self.get_measure_code()
-        msg["measure_value"] = self.get_measure_value()
-        msg["measure_name"] = self.get_measure_name()
-        msg["cycle_number"] = self.get_cycle_number()
-        msg["version"] = self.get_version()
-        return str(msg)
+        msg["timestamp"] = float(self.get_timestamp())
+        msg["device_id"] = str(self.get_device_id())
+        msg["measure_code"] = str(self.get_measure_code())
+        msg["measure_value"] = float(self.get_measure_value())
+        msg["measure_name"] = str(self.get_measure_name())
+        msg["cycle_number"] = int(self.get_cycle_number())
+        msg["version"] = int(self.get_version())
+        return json.dumps(msg)
 
     def set_version(self,version):
         self.version = version
