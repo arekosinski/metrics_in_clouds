@@ -12,7 +12,8 @@ import sys,os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+"/lib")
 
-import message_object
+# import message_object
+from message_object import MessageObject
 
 def redis_connection_open(host,port,database):
     redis_conn = redis.Redis(host=host,port=port,db=database)
