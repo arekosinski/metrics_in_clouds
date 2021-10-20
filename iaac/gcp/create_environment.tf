@@ -21,7 +21,7 @@ resource "google_pubsub_topic" "iot_data_topic" {
 
 resource "google_pubsub_subscription" "iot_data_topic_subscription" {
   name = "iot-data-subsciption"
-  topic = iot_data_topic.name
+  topic = google_pubsub_topic.iot_data_topic.name
 }
 
 resource "google_pubsub_topic_iam_policy" "pubsub_publish_permissions" {
