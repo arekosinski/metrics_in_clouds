@@ -106,3 +106,50 @@ resource "google_bigquery_table" "iot_base_table" {
   }]
 EOF
 }
+
+resource "google_storage_bucket" "gs_cf_bucket" {
+  name = "iot_data_deployment"
+  location = "europe-central2"
+  force_destroy = true
+  requester_pays = true
+  uniform_bucket_level_access = true
+}
+
+resource "google_storage_bucket_iam_member" "gs_cf_bucket_owner" {
+  bucket = google_storage_bucket.gs_cf_bucket.name
+  role = "roles/storage.admin"
+  member = "serviceAccount:${google_service_account.pubsub_sa.email}"
+}
+
+resource "google_storage_bucket_object" "cf_code" {
+  name   = "cf_iot_data.zip"
+  bucket = google_storage_bucket.gs_cf_bucket.name
+  source = "../../build/cf_iot_data.zip"
+}
+
+resource "google_cloudfunctions_function" "cf_pubsub_to_bigquery" {
+  name        = "cf-iot-pubsub-to-bigquery"
+  description = "publish data from pubsub queue to bigquery tables"
+  runtime     = "python37"
+  available_memory_mb = 256
+  timeout = 60
+  entry_point = "pubsub_to_bigq"
+  event_trigger {
+    event_type = "google.pubsub.topic.publish"
+    resource = "projects/${var.gcp_project_name}/topics/${google_pubsub_topic.iot_data_topic.name}"
+  }
+  ingress_settings = "ALLOW_INTERNAL_ONLY"
+  max_instances = 3
+  # service_account_email = google_service_account.pubsub_sa.email
+  environment_variables = {
+    ENV_BQ_TABLE = "iot_base_data",
+    ENV_BQ_DATASET = "iot_data",
+    ENV_DEBUG = "1"
+  } 
+  source_archive_bucket = google_storage_bucket.gs_cf_bucket.name
+  source_archive_object = google_storage_bucket_object.cf_code.name 
+
+  depends_on = [
+    google_storage_bucket_object.cf_code
+  ]
+}

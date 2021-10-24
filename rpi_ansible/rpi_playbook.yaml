@@ -30,6 +30,8 @@
         name: 
           - redis
           - pyserial
+          - google-cloud-pubsub
+
     
     - name: Ensure Redis Configuration
       template: src=redis.conf.j2 dest=/etc/redis/redis.conf owner=root group=root mode=0644
@@ -38,6 +40,7 @@
     - name: Enable service httpd, and not touch the state
       ansible.builtin.service:
         name: redis-server
+        state: started
         enabled: yes
 
   handlers:
