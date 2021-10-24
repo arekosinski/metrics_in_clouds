@@ -53,7 +53,7 @@ cli_parser.add_argument('--redis-port', action='store', type=int, required=False
 cli_parser.add_argument('--redis-server', action='store', type=str, required=False, default=redis_server,help="Redis server host address")
 cli_parser.add_argument('--redis-list', action='append', type=str, required=False, default=redis_list,help="On which Redis list I should work")
 cli_parser.add_argument('--redis-database', action='store', type=int, required=False, default=redis_database,help="On which Redis list I should work")
-cli_parser.add_argument('--logger-file', action='store', type=str, required=False, default=env_logger_file,help="Name of the file to store data (beside Redis)")
+cli_parser.add_argument('--logger-file', action='store', type=str, required=False, default=env_logger_file,help="Debug messages to file")
 
 cli_args = cli_parser.parse_args()
 
@@ -76,19 +76,17 @@ if __name__ == '__main__':
     
     credentials = service_account.Credentials.from_service_account_info(service_account_info)
 
-    
-
     publisher = pubsub_v1.PublisherClient(credentials=credentials)
 
     pubsub_topic = publisher.topic_path(cli_args.gcp_project, cli_args.pubsub_topic)
 
     redis_list_length = redis_connection.llen(cli_args.redis_list)
-    logging.info("Redis queue length to process: {llen}".format(llen=redis_list_length))
+    logging.info("Statup: Redis queue length to process: {llen}".format(llen=redis_list_length))
 
     while True:
 
         redis_list_length = redis_connection.llen(cli_args.redis_list)
-        if redis_list_length % 100 == 0:
+        if redis_list_length > 10:
             logging.info("Redis queue length to process: {llen}".format(llen=redis_list_length))
 
         if redis_list_length > 0:

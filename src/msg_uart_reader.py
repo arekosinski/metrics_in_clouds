@@ -61,9 +61,6 @@ def write_message_to_storage(processing_queue,redis_lists):
 
 ####
 
-logging.basicConfig(format='%(asctime)s %(levelname)s [%(threadName)10s]: %(message)s', datefmt='%Y/%m/%d %H:%M:%S', level=logging.DEBUG)
-logging.info("Setting up env")
-
 uart_speed = 460800
 uart_port = '/dev/ttyAMA0'
 redis_server = "localhost"
@@ -71,6 +68,7 @@ redis_port = 6379
 redis_lists = ["metrics_pubsub","metrics_kinesis"]
 redis_database = 0
 msg_logger_file = "{homedir}/radio_msg.log".format(homedir=os.path.expanduser("~"))
+msg_logger_debug = "{homedir}/msg_uart_reader.log".format(homedir=os.path.expanduser("~"))
 msg_received_count = 0
 
 messages_queue = queue.Queue()
@@ -85,8 +83,20 @@ cli_parser.add_argument('--redis-server', action='store', type=str, required=Fal
 cli_parser.add_argument('--redis-list', action='append', type=str, required=False, default=redis_lists,help="On which Redis list I should work")
 cli_parser.add_argument('--redis-database', action='store', type=int, required=False, default=redis_database,help="On which Redis list I should work")
 cli_parser.add_argument('--logger-file', action='store', type=str, required=False, default=msg_logger_file,help="Name of the file to store data (beside Redis)")
+cli_parser.add_argument('--logger-debug',action='store', type=str, required=False, default=msg_logger_debug, help="File with internal debug and other logs")
 
 cli_args = cli_parser.parse_args()
+
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s [%(threadName)10s]: %(message)s',
+    datefmt='%Y/%m/%d %H:%M:%S',
+    level=logging.DEBUG,
+    handlers=[
+        logging.FileHandler(cli_args.logger_debug),
+        logging.StreamHandler()
+    ]   
+)
+logging.info("Setting up env")
 
 if __name__ == '__main__':
 
