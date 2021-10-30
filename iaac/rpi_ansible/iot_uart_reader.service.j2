@@ -6,9 +6,11 @@ After=syslog.target network.target
 [Service]
 Type=simple
 ExecStart=python3 /home/pi/metrics_in_clouds/src/msg_uart_reader.py
-ExecStop=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -9 $MAINPID
 User=pi
 PIDFile=/tmp/iot_uart_reader.pid
+Restart=on-failure
+RestartSec=15s
 
 [Install]
 WantedBy=multi-user.target

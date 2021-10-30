@@ -6,9 +6,11 @@ After=syslog.target network.target
 [Service]
 Type=simple
 ExecStart=/usr/bin/python3 /home/pi/metrics_in_clouds/src/msg_export_pubsub.py
-ExceStop=/bin/kill -HUP $MAINPID
+ExceStop=/bin/kill -9 $MAINPID
 User=pi
 PIDFile=/tmp/iot_msg_publisher.pid
+Restart=on-failure
+RestartSec=60s
 
 [Install]
 WantedBy=multi-user.target
