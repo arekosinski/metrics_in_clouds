@@ -23,8 +23,11 @@ def debug_me(msg):
 
 def prepare_data(event):
     dst_event = event
-    msg_timestamp = dst_event.pop("timestamp")
-    dst_event['event_timestamp'] = datetime.datetime.fromtimestamp(msg_timestamp)
+    if 'timestamp' in dst_event:
+        msg_timestamp = dst_event.pop("timestamp")
+        dst_event['event_timestamp'] = datetime.datetime.fromtimestamp(msg_timestamp)
+    else:
+        return "Unknown data", 417
     return dst_event
 
 def insert_into_bigquery(event):
@@ -39,6 +42,7 @@ def insert_into_bigquery(event):
     except Exception:
         print("Error while message inserting")
         debug_me(traceback.print_exc())
+        return "insert error", 424
 
 def pubsub_to_bigq(event, context):
     try:
@@ -50,5 +54,6 @@ def pubsub_to_bigq(event, context):
     except Exception:
         print("Error while preparing message")
         debug_me(traceback.print_exc())
+        return "Data error", 422
     # insert data into BigQuery
     insert_into_bigquery(event_data)
