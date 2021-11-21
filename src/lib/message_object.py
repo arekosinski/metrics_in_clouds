@@ -8,21 +8,21 @@ import json
 class MessageObject:
 
     dict_measure_codes = {
-        "MSGC_TEMPERATURE": 1,
-        "MSGC_HUMIDITY": 2,
-        "MSGC_BATTERY_VOLTAGE": 3,
-        "MSGC_TEMP_SENSOR_ERROR": 4,
-        "MSGC_ALL_MESSAGES_SUCCESS": 5,
-        "MSGC_ALL_SENDING_TRIALS" : 6,
-        "MSGC_AVG_CYCLE_LENGTH" : 7,
-        "MSGC_DELIVERY_RATIO" : 8,
-        "MSGC_RETRANSMISSIONS" : 9,
-        "MSGC_ACCU_VOLTAGE" : 10, # 0xA
-        "MSGC_ID_1" : 11, # 0xB
-        "MSGC_ID_2" : 12, # 0xC
-        "MSGC_ID_3" : 13, # 0xD
-        "MSGC_ID_4" : 14, # 0xE
-        "MSGC_STARTUP_CODE" : 15 # 0xF
+        "MSGC_TEMPERATURE": "1",
+        "MSGC_HUMIDITY": "2",
+        "MSGC_BATTERY_VOLTAGE": "3",
+        "MSGC_TEMP_SENSOR_ERROR": "4",
+        "MSGC_ALL_MESSAGES_SUCCESS": "5",
+        "MSGC_ALL_SENDING_TRIALS" : "6",
+        "MSGC_AVG_CYCLE_LENGTH" : "7",
+        "MSGC_DELIVERY_RATIO" : "8",
+        "MSGC_RETRANSMISSIONS" : "9",
+        "MSGC_ACCU_VOLTAGE" : "a", # 0xA, 10
+        "MSGC_ID_1" : "b", # 11
+        "MSGC_ID_2" : "c", # 12
+        "MSGC_ID_3" : "d", # 13
+        "MSGC_ID_4" : "e", # 14
+        "MSGC_STARTUP_CODE" : "f" # 0xF, 15
     }
 
     measure_name = None
@@ -54,7 +54,10 @@ class MessageObject:
 
             self.set_measure_value(msg_dict["measure_value"])
             self.set_measure_code(msg_dict["measure_code"])
-            self.set_measure_name(self.get_measure_name_by_code(msg_dict["measure_code"]))
+            if not 'measure_name' in msg_dict:
+                self.set_measure_name(self.get_measure_name_by_code(msg_dict["measure_code"]))
+            else:
+                self.set_measure_name(msg_dict["measure_name"])
             self.set_cycle_number(msg_dict["cycle_number"])
             self.set_device_id(msg_dict["device_id"])
         except:
@@ -66,19 +69,27 @@ class MessageObject:
         msg = ast.literal_eval(msg_str)
         return self.create_message_from_dict(msg)
     
+    def create_message_from_json(self,json_str):
+        try:
+            msg = json.loads(json_str.strip())
+            return self.create_message_from_dict(msg)
+        except Exception:
+            self.add_validation_error("cant parse JSON")
+            return False
+        
+
     def create_message_from_raw_data(self,msg_raw_line):
         try:
-            self.set_version(self.detect_version(msg_raw_line))
-            self.set_timestamp()
-            self.set_device_id(self.extract_device_id(msg_raw_line))
-            self.set_measure_code(self.extract_measure_code(msg_raw_line))
-            self.set_measure_name(self.get_measure_name_by_code(self.get_measure_code()))
-            self.set_measure_value(self.extract_measure_value(msg_raw_line))
-            self.set_cycle_number(self.extract_cycle_number(msg_raw_line))
+            msg_raw_dict = {}
+            msg_raw_dict['timestamp'] = datetime.datetime.now().timestamp()
+            msg_raw_dict['device_id'] = self.extract_device_id(msg_raw_line)
+            msg_raw_dict['measure_code'] = self.extract_measure_code(msg_raw_line)
+            msg_raw_dict['measure_value'] = self.extract_measure_value(msg_raw_line)
+            msg_raw_dict['cycle_number'] = self.extract_cycle_number(msg_raw_line)
+            return self.create_message_from_dict(msg_raw_dict)
         except Exception:
-            traceback.print_exc()
-        
-        return self.validate()
+            self.add_validation_error('cant process raw data')
+            return False
 
     def export_message(self):
         msg = dict()
@@ -108,34 +119,43 @@ class MessageObject:
             return False
 
     def validate(self):
+        self.remove_validation_errors()
+
         if self.get_timestamp() is None:
-            self.validation_errors.append("no timestamp")
+            self.add_validation_error("no timestamp")
         
         if self.get_device_id() is None:
-            self.validation_errors.append("no device id")
+            self.add_validation_error("no device id")
 
         if self.get_measure_name() is None:
-            self.validation_errors.append("no measure name")
+            self.add_validation_error("no measure name")
 
         if self.get_measure_value() is None:
-            self.validation_errors.append("no measure value")
+            self.add_validation_error("no measure value")
 
         if self.get_measure_code() is None:
-            self.validation_errors.append("no measure code")
+            self.add_validation_error("no measure code")
 
         if self.get_cycle_number() is None:
-            self.validation_errors.append("no cycle_number")
+            self.add_validation_error("no cycle_number")
 
         if self.get_version() is None:
-            self.validation_errors.append("no version")
+            self.add_validation_error("no version")
 
-        if len(self.validation_errors) > 0:
+        if len(self.get_validation_errors()) > 0:
             return False
         else:
             return True
 
+    def add_validation_error(self,msg):
+        return self.validation_errors.append(msg)
+
     def get_validation_errors(self):
         return self.validation_errors
+
+    def remove_validation_errors(self):
+        self.validation_errors = []
+        return True
 
     def extract_device_id(self,msg_raw_line):
         return msg_raw_line[0:2]
@@ -151,9 +171,13 @@ class MessageObject:
         return msg_raw_line[2:3]
 
     def set_measure_code(self,measure_code):
-        self.measure_code = measure_code
-        return True
-    
+        if measure_code in self.dict_measure_codes.values():
+            self.measure_code = measure_code
+            return True
+        else:
+            self.measure_code = None
+            return False
+
     def get_measure_code(self):
         return self.measure_code
 
@@ -165,13 +189,16 @@ class MessageObject:
 
     def get_measure_name_by_code(self,measure_code):
         try:
-            return list(self.dict_measure_codes.keys())[list(self.dict_measure_codes.values()).index( int(measure_code,16) )]
+            return list(self.dict_measure_codes.keys())[list(self.dict_measure_codes.values()).index( measure_code )]
         except:
             return None
 
     def set_measure_name(self,measure_name):
-        self.measure_name = measure_name
-        return True
+        if measure_name is None or measure_name is False:
+            self.measure_name = None
+        else:
+            self.measure_name = measure_name
+            return True
 
     def get_measure_name(self):
         return self.measure_name
@@ -180,8 +207,12 @@ class MessageObject:
         return msg_raw_line[3:msg_raw_line.find('|',0)]
 
     def set_measure_value(self,measure_value):
-        self.measure_value = measure_value
-        return True
+        try:
+            self.measure_value = float(measure_value)
+            return True
+        except:
+            self.measure_value = None
+            return False
 
     def get_measure_value(self):
         return self.measure_value
