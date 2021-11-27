@@ -37,7 +37,7 @@ cli_parser = argparse.ArgumentParser(description='Script for getting messages fr
 
 cli_parser.add_argument('--redis-port', action='store', type=int, required=False, default=redis_port,help="Redis port to connect too")
 cli_parser.add_argument('--redis-server', action='store', type=str, required=False, default=redis_server,help="Redis server host address")
-cli_parser.add_argument('--redis-list', action='append', type=str, required=False, default=redis_list,help="On which Redis list I should work")
+cli_parser.add_argument('--redis-list', action='store', type=str, required=False, default=redis_list,help="On which Redis list I should work")
 cli_parser.add_argument('--redis-database', action='store', type=int, required=False, default=redis_database,help="On which Redis list I should work")
 cli_parser.add_argument('--json-file', action='store', type=str, required=True, help="File with JSONs to insert into Redis")
 cli_parser.add_argument('--logger-debug',action='store', type=str, required=False, default=msg_logger_debug, help="File with internal debug and other logs")
@@ -75,8 +75,18 @@ if __name__ == '__main__':
                 if not validation:
                     logging.error("JSON not parsable; {js}".format(js=json_string))
                     logging.error("Errors: {e}".format(e=msg.get_validation_errors()))
-            except Exception:
+                else:
+                    msg_to_push = msg.export_message()
+                    logging.info("Message to put {}".format(msg_to_push))
 
+                    try:
+                        push_stat = redis_write_message(msg_to_push, redis_connection, cli_args.redis_list)
+                        if push_stat:
+                            logging.info("Msg send into redis")
+                    except Exception:
+                        logging.error(traceback.print_exc())
+
+            except Exception:
                 logging.error(traceback.print_exc())
 
 

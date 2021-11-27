@@ -65,7 +65,7 @@ uart_speed = 460800
 uart_port = '/dev/ttyAMA0'
 redis_server = "localhost"
 redis_port = 6379
-redis_lists = ["metrics_pubsub","metrics_kinesis"]
+redis_lists = ["metrics_pubsub","metrics_graphite"]
 redis_database = 0
 msg_logger_file = "{homedir}/radio_msg.log".format(homedir=os.path.expanduser("~"))
 msg_logger_debug = "{homedir}/msg_uart_reader.log".format(homedir=os.path.expanduser("~"))
