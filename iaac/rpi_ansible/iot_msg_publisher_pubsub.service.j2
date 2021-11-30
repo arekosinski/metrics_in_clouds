@@ -8,7 +8,7 @@ Type=simple
 ExecStart=/usr/bin/python3 /home/pi/metrics_in_clouds/src/msg_export_pubsub.py
 ExceStop=/bin/kill -9 $MAINPID
 User=pi
-PIDFile=/tmp/iot_msg_publisher.pid
+PIDFile=/tmp/iot_msg_publisher_pubsub.pid
 Restart=on-failure
 RestartSec=60s
 
