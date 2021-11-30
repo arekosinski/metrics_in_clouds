@@ -26,6 +26,11 @@ def redis_connection_close(redis):
 def redis_write_message(msg,redis_conn,redis_list):
     return redis_conn.lpush(redis_list, msg)
 
+def validate_deviceid_drop_list(device_id,drop_list=msg_drop_by_deviceid):
+    if device_id in drop_list:
+        return True
+    return False
+
 def write_message_to_storage(processing_queue,redis_lists):
     while True:
         msg = processing_queue.get()
@@ -35,15 +40,9 @@ def write_message_to_storage(processing_queue,redis_lists):
             .format(sensor_id=msg.get_device_id(),measurment_id=msg.get_measure_code(),cycle=msg.get_cycle_number())
         )
 
-        # writing to redis
-        for r_list in redis_lists:
-            try:
-                redis_writing_status = redis_write_message(msg=msg.export_message(),redis_conn=redis_connection,redis_list=r_list)
-                if redis_writing_status == False:
-                    logging.error("Problem with writing message to redis database")
-            except Exception:
-                traceback.print_exc()
-                logging.error(traceback.print_exc())
+        if validate_deviceid_drop_list(msg.get_device_id()):
+            processing_queue.task_done()
+            continue
 
         # writing to file
         try:
@@ -56,6 +55,16 @@ def write_message_to_storage(processing_queue,redis_lists):
         except Exception:
             traceback.print_exc()
             logging.error(traceback.print_exc())
+
+        # writing to redis
+        for r_list in redis_lists:
+            try:
+                redis_writing_status = redis_write_message(msg=msg.export_message(),redis_conn=redis_connection,redis_list=r_list)
+                if redis_writing_status == False:
+                    logging.error("Problem with writing message to redis database")
+            except Exception:
+                traceback.print_exc()
+                logging.error(traceback.print_exc())
 
         processing_queue.task_done()
 
@@ -70,6 +79,7 @@ redis_database = 0
 msg_logger_file = "{homedir}/radio_msg.log".format(homedir=os.path.expanduser("~"))
 msg_logger_debug = "{homedir}/msg_uart_reader.log".format(homedir=os.path.expanduser("~"))
 msg_received_count = 0
+msg_drop_by_deviceid = ["99"]
 
 messages_queue = queue.Queue()
 
