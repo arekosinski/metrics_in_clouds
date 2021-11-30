@@ -26,7 +26,7 @@ def redis_connection_close(redis):
 def redis_write_message(msg,redis_conn,redis_list):
     return redis_conn.lpush(redis_list, msg)
 
-def validate_deviceid_drop_list(device_id,drop_list=msg_drop_by_deviceid):
+def validate_deviceid_drop_list(device_id,drop_list):
     if device_id in drop_list:
         return True
     return False
@@ -40,7 +40,7 @@ def write_message_to_storage(processing_queue,redis_lists):
             .format(sensor_id=msg.get_device_id(),measurment_id=msg.get_measure_code(),cycle=msg.get_cycle_number())
         )
 
-        if validate_deviceid_drop_list(msg.get_device_id()):
+        if validate_deviceid_drop_list(msg.get_device_id(),msg_drop_by_deviceid):
             processing_queue.task_done()
             continue
 
