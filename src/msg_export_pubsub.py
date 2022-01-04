@@ -86,7 +86,7 @@ if __name__ == '__main__':
     while True:
 
         redis_list_length = redis_connection.llen(cli_args.redis_list)
-        if redis_list_length > 10:
+        if redis_list_length % 10 == 0:
             logging.info("Redis queue length to process: {llen}".format(llen=redis_list_length))
 
         if redis_list_length > 0:
@@ -101,7 +101,8 @@ if __name__ == '__main__':
                     logging.error("Error during message publishing")
                     traceback.print_exc()
                     logging.error(traceback.print_exc())
-                    break
+                    time.sleep(60*publish_error_counter)
+                    
                 time.sleep(0.05)
             except Exception:
                 traceback.print_exc()
@@ -110,7 +111,7 @@ if __name__ == '__main__':
             logging.info("Redis queue is empty. waiting")
             time.sleep(60)
 
-        if publish_error_counter > 5:
-            logging.fatal("Over 5 error related with message publishing. Exiting")
-            sys.exit()
+        if publish_error_counter > 10:
+            logging.fatal("Over 10 error related with message publishing. Exiting")
+            sys.exit(-1)
         
