@@ -1,0 +1,6 @@
+{
+    "url": "<graphite_url>",
+    "user": "<user>",
+    "password": "<password>",
+    "prefix": "<default_prefix>"
+  }
