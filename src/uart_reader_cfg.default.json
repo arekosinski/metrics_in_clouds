@@ -1,0 +1,5 @@
+{
+    "uart_speed": 460800,
+    "uart_port": "/dev/ttyAMA0",
+    "location_id": 101
+}
