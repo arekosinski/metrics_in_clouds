@@ -9,6 +9,7 @@ import traceback
 import threading
 import queue
 import sys,os
+import json
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+"/lib")
 
@@ -70,8 +71,6 @@ def write_message_to_storage(processing_queue,redis_lists):
 
 ####
 
-uart_speed = 460800
-uart_port = '/dev/ttyAMA0'
 redis_server = "localhost"
 redis_port = 6379
 redis_lists = ["metrics_pubsub","metrics_graphite","metrics_webapi"]
@@ -80,20 +79,20 @@ msg_logger_file = "{homedir}/radio_msg.log".format(homedir=os.path.expanduser("~
 msg_logger_debug = "{homedir}/msg_uart_reader.log".format(homedir=os.path.expanduser("~"))
 msg_received_count = 0
 msg_drop_by_deviceid = ["99"]
+uart_cfg_file = "{homedir}/uart_cfg.json".format(homedir=os.path.expanduser("~"))
 
 messages_queue = queue.Queue()
 
 # CLI parser
 cli_parser = argparse.ArgumentParser(description='Script for getting messages from RPI UART and putting them into redis database')
 
-cli_parser.add_argument('--uart-speed', action='store', type=int, required=False, default=uart_speed,help="UART port speed")
-cli_parser.add_argument('--uart-port', action='store', type=str, required=False, default=uart_port,help="UART port in OS")
 cli_parser.add_argument('--redis-port', action='store', type=int, required=False, default=redis_port,help="Redis port to connect too")
 cli_parser.add_argument('--redis-server', action='store', type=str, required=False, default=redis_server,help="Redis server host address")
 cli_parser.add_argument('--redis-list', action='append', type=str, required=False, default=redis_lists,help="On which Redis list I should work")
 cli_parser.add_argument('--redis-database', action='store', type=int, required=False, default=redis_database,help="On which Redis list I should work")
 cli_parser.add_argument('--logger-file', action='store', type=str, required=False, default=msg_logger_file,help="Name of the file to store data (beside Redis)")
 cli_parser.add_argument('--logger-debug',action='store', type=str, required=False, default=msg_logger_debug, help="File with internal debug and other logs")
+cli_parser.add_argument('--cfg-file', action='store', type=str, required=False, default=uart_cfg_file ,help="Graphite configuration in JSON file")
 
 cli_args = cli_parser.parse_args()
 
@@ -110,9 +109,18 @@ logging.info("Setting up env")
 
 if __name__ == '__main__':
 
+    #uart_reader graphite configuratiob
+    try:
+        with open(cli_args.uart_cfg_file,"r") as json_file:
+            uart_configuration = json.load(json_file)
+        logging.info("Uart reader configuration loaded")
+    except Exception:
+        logging.fatal("Cant load configuraion for uart")
+        sys.exit(-1)
+
     # create serial handler        
     logging.info("Setting up serial connection")
-    serial_proxy = serial.Serial(cli_args.uart_port, cli_args.uart_speed, timeout=1)
+    serial_proxy = serial.Serial(uart_configuration['uart_port'], uart_configuration['uart_speed'], timeout=1)
     serial_proxy.flush()
 
     # open redis communication
@@ -136,6 +144,7 @@ if __name__ == '__main__':
 
                 if MessageObject.detect_version(line):
                     msg = MessageObject(line)
+                    msg.set_location_id(uart_configuration['location_id'])
 
                     # put message to queue for further processing
                     if msg.validate() == True:
