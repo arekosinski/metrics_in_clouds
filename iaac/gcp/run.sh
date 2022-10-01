@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# plese keep in mind to login before executing terraform commands
+# gcloud auth application-default login
+
 terraform init
 if [ "$?" != "0" ]; then
     echo "init error"

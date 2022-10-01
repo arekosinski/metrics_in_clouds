@@ -98,6 +98,12 @@ resource "google_bigquery_table" "iot_base_table" {
     "type": "INTEGER",
     "mode": "NULLABLE",
     "description": "Measurment taken by device for measure code"
+  },
+  {
+    "name": "location_id",
+    "type": "INTEGER",
+    "mode": "NULLABLE",
+    "description": "Location ID"
   }]
 EOF
 }
