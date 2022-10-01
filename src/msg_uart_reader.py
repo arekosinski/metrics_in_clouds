@@ -79,7 +79,7 @@ msg_logger_file = "{homedir}/radio_msg.log".format(homedir=os.path.expanduser("~
 msg_logger_debug = "{homedir}/msg_uart_reader.log".format(homedir=os.path.expanduser("~"))
 msg_received_count = 0
 msg_drop_by_deviceid = ["99"]
-uart_cfg_file = "{homedir}/uart_cfg.json".format(homedir=os.path.expanduser("~"))
+uart_cfg_file = "{homedir}/uart_reader_cfg.json".format(homedir=os.path.expanduser("~"))
 
 messages_queue = queue.Queue()
 
@@ -111,7 +111,7 @@ if __name__ == '__main__':
 
     #uart_reader graphite configuratiob
     try:
-        with open(cli_args.uart_cfg_file,"r") as json_file:
+        with open(cli_args.cfg_file,"r") as json_file:
             uart_configuration = json.load(json_file)
         logging.info("Uart reader configuration loaded")
     except Exception:
