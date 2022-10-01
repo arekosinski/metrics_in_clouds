@@ -32,6 +32,7 @@ class MessageObject:
     timestamp = None
     cycle_number = None
     version = None
+    location_id = None
 
     validation_errors = []
 
@@ -60,6 +61,11 @@ class MessageObject:
                 self.set_measure_name(msg_dict["measure_name"])
             self.set_cycle_number(msg_dict["cycle_number"])
             self.set_device_id(msg_dict["device_id"])
+
+            if 'location_id' in msg_dict:
+                self.set_location_id(msg_dict['location_id'])
+            else:
+                self.set_location_id(101)
         except:
             pass
         
@@ -100,6 +106,7 @@ class MessageObject:
         msg["measure_name"] = str(self.get_measure_name())
         msg["cycle_number"] = int(self.get_cycle_number())
         msg["version"] = int(self.get_version())
+        msg["location_id"] = int(self.get_location_id())
         return json.dumps(msg)
 
     def set_version(self,version):
@@ -226,6 +233,12 @@ class MessageObject:
 
     def get_cycle_number(self):
         return self.cycle_number
+
+    def set_location_id(self,location_id):
+        self.location_id = location_id
+    
+    def get_location_id(self):
+        return self.location_id
 
     def get_timestamp(self):
         return self.timestamp

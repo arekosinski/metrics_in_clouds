@@ -1,0 +1,5 @@
+{
+    "url": "<api_path>",
+    "bearer": "<auth string>",
+    "location_id": 101
+}
