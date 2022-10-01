@@ -27,18 +27,6 @@ def redis_connection_close(redis):
 def redis_write_message(msg,redis_conn,redis_list):
     return redis_conn.lpush(redis_list, msg)
 
-def get_metric_object(metric,value,timestamp,interval=60):
-    metric_object = dict()
-    metric_object['name'] = metric
-    metric_object['metric'] = metric
-    metric_object['value'] = value
-    metric_object['interval'] = interval
-    # metric_object['unit'] = Null
-    metric_object['time'] = int(timestamp)
-    metric_object['mtype'] = "count"
-    # graphite_data['tags'] = []
-    return metric_object
-
 def webapi_write_metrics(msg_obj,configuration):
 
     headers = {
@@ -110,7 +98,6 @@ if __name__ == '__main__':
                 rmsg = redis_connection.lpop(cli_args.redis_list)
                 msg_object = MessageObject()
                 msg_object.create_message_from_json(rmsg)
-                msg_object.set_location_id(webapi_configuration['location_id'])
                 if msg_object.validate():
                     if msg_object.get_measure_name() == 'MSGC_TEMPERATURE' or msg_object.get_measure_name() == 'MSGC_HUMIDITY':
                         try:
