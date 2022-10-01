@@ -45,8 +45,8 @@ def graphite_write_metrics(msg_obj,configuration):
         "Authorization": "Bearer {user}:{password}".format(user=configuration['user'],password=configuration['password'])
     }
 
-    metric_key = "hiot.{device}.{metric_name}".format(device=msg_obj.get_device_id(),metric_name=msg_obj.get_measure_name())
-    metric_key_cycle = "hiot.{device}.cycle_number".format(device=msg_obj.get_device_id())
+    metric_key = "{prefix}.{device}.{metric_name}".format(device=msg_obj.get_device_id(),metric_name=msg_obj.get_measure_name(),prefix=configuration['prefix'])
+    metric_key_cycle = "{prefix}.{device}.cycle_number".format(device=msg_obj.get_device_id(),prefix=configuration['prefix'])
     logging.debug("Metric: {metric_key}:{value}".format(metric_key=metric_key,value=msg_obj.get_measure_value()))
 
     graphite_measure_data = get_metric_object(metric_key,msg_obj.get_measure_value(),msg_obj.get_timestamp())
