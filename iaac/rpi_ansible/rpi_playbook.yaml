@@ -51,11 +51,17 @@
     - name: Msg graphite pubslisher - systemd file
       template: src=iot_msg_publisher_graphite.service.j2 dest=/lib/systemd/system/iot_msg_publisher_graphite.service mode=644
 
+    - name: Msg webapi pubslisher - systemd file
+      template: src=iot_msg_publisher_webapi.service.j2 dest=/lib/systemd/system/iot_msg_publisher_webapi.service mode=644
+
     - name: Msg pubsub publisher - systemd service
       service: name=iot_msg_publisher.service state=started enabled=yes
 
     - name: Msg graphite publisher - systemd service
       service: name=iot_msg_publisher_graphite.service state=started enabled=yes
+
+    - name: Msg webapi publisher - systemd service
+      service: name=iot_msg_publisher_webapi.service state=started enabled=yes
 
     - name: UART Reader - systemd service
       service: name=iot_uart_reader.service state=started enabled=yes

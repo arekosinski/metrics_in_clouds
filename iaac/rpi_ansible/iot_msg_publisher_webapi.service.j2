@@ -1,0 +1,16 @@
+[Unit]
+Description=msg publisher webapi
+Requires=network.target
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/pi/metrics_in_clouds/src/msg_export_webapi.py
+ExceStop=/bin/kill -9 $MAINPID
+User=pi
+PIDFile=/tmp/iot_msg_publisher_webapi.pid
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
