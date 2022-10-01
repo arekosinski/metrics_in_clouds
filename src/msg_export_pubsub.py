@@ -14,10 +14,6 @@ from google.cloud import pubsub_v1
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__))+"/lib")
 
-# import message_object
-from message_object import MessageObject
-
-
 ## functions
 def redis_connection_open(host,port,database):
     redis_conn = redis.Redis(host=host,port=port,db=database)
